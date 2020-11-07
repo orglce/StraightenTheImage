@@ -19,11 +19,11 @@ def printLinesToImage(img, lines):
 			cv.line(img, (x1, y1), (x2, y2), (255, 0, 0), 2)
 	print(len(lines))
 
-imageName = '../sample_photos/0001.jpg'
+imageName = '../sample_photos/0004.jpg'
 
 
 bilateralBlur = True
-bilateralBlurStrength = 4
+bilateralBlurStrength = 8
 
 
 # read image
@@ -50,12 +50,12 @@ if (bilateralBlur):
 else:
 	blurredImg = imgBlack
 
-cannyLowTreshod = 50
-cannyHighTreshold = 100
-cannyAperture = 3
+# cannyLowTreshod = 50
+# cannyHighTreshold = 200
+# cannyAperture = 3
 
-cannyLowTreshod = blurredImg.mean()-blurredImg.std()
-cannyHighTreshold = blurredImg.mean()+blurredImg.std()
+cannyLowTreshod = np.median(blurredImg)-blurredImg.std()
+cannyHighTreshold = np.median(blurredImg)+blurredImg.std()
 cannyAperture = 3
 
 print(cannyLowTreshod, cannyHighTreshold)
@@ -64,8 +64,20 @@ print(cannyLowTreshod, cannyHighTreshold)
 edges = cv.Canny(blurredImg, cannyLowTreshod, cannyHighTreshold, cannyAperture)
 
 # find lines from the edges
-lines = cv.HoughLines(edges, 1, np.pi/180, 100)
-printLinesToImage(imgBlack, lines)
+lines = cv.HoughLines(edges, 1, np.pi/180, 200)
+# printLinesToImage(imgBlack, lines)
+
+
+lines = cv.HoughLinesP(edges, 1, np.pi/180, 60, minLineLength=100, maxLineGap=30)
+for line in lines:
+	for x1, y1, x2, y2 in line:
+		cv.line(imgBlack, (x1, y1), (x2, y2), (255, 255, 255), 2)
+
+print(len(lines))
+
+cv.imwrite("lines.png", imgBlack)
+cv.imwrite("edges.png", edges)
+
 
 # plot images
 fig, axs = plt.subplots(2, 2)
