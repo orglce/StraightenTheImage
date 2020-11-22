@@ -1,1 +1,11 @@
+split program into functions:
 
+(?) 1) function to show load image prompt
+Luka 2) function to reszie and smooth picture - pre-processing
+Aoife 3) function to detect Canny edges and reduce noise in edges
+Luka 4) function to calculate Hough lines
+Kseniia 5) Function to calculate angle to rotate picture
+(?) 6) Function to rotate picture
+(?) 7) Function to show rotated picture and prompt to save
+
+- Main body calling all functions

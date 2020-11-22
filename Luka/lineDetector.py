@@ -2,21 +2,17 @@ import cv2 as cv
 import numpy as np
 from matplotlib import pyplot as plt
 
-expectedNumOfLines = 400
-allowedVariance = 100
-lowerNumOfLines = expectedNumOfLines - allowedVariance
-upperNumOfLines = expectedNumOfLines + allowedVariance
 
-testHowManyPhotos = 24
-onlyOneImage = False
-imageNameOverride = "../sample_photos/0012.jpg"
+def getLines(img, expectedNumOfLines, numOfLinesVariance):
 
-for i in range(testHowManyPhotos):
+    # range for number of lines that we wish to detect
+    lowerNumOfLines = expectedNumOfLines - numOfLinesVariance
+    upperNumOfLines = expectedNumOfLines + numOfLinesVariance
 
+    # starting parameters for the line detection
     numOfLines = 0
 
     bilateralBlurStrength = 7
-    bilateralKernelSize = 100
 
     improveContrast = True
     useBilateralBlur = True
@@ -24,16 +20,12 @@ for i in range(testHowManyPhotos):
     houghLineTransformThreshold = 50
     houghLineTransformMinLength = 100
 
+    # in case of infinite looping
     numberOfLoopsAllowed = 30
     loopsCounter = 0
 
-    num = str(format(i + 1, '02d'))
-    imageName = '../sample_photos/00' + num + '.jpg'
-    if onlyOneImage:
-        imageName = imageNameOverride
-
-    # read image
-    imgBlack = cv.imread(imageName, cv.IMREAD_GRAYSCALE)
+    # reading and resizing the image to speed up further processing
+    imgBlack = cv.cvtColor(img, cv.COLOR_BGR2GRAY)
     width = imgBlack.shape[1]
     height = imgBlack.shape[0]
 
@@ -68,45 +60,33 @@ for i in range(testHowManyPhotos):
         else:
             blurredImg = imgBlackCopy
 
-        cannyLowTreshod = np.median(blurredImg) - blurredImg.std()
-        cannyHighTreshold = np.median(blurredImg) + blurredImg.std()
-        cannyAperture = 3
-        edges = cv.Canny(blurredImg, cannyLowTreshod, cannyHighTreshold, cannyAperture)
+        # Canny edge detection
+        cannyLowThreshold = np.median(blurredImg) - blurredImg.std()
+        cannyHighThreshold = np.median(blurredImg) + blurredImg.std()
+        imgEdges = cv.Canny(blurredImg, cannyLowThreshold, cannyHighThreshold, 3)
 
-        lines = cv.HoughLinesP(edges, 1, np.pi / 180, houghLineTransformThreshold,
+        # Hough line transform
+        houghLines = cv.HoughLinesP(imgEdges, 1, np.pi / 180, houghLineTransformThreshold,
                                minLineLength=houghLineTransformMinLength, maxLineGap=50)
-        numOfLines = len(lines)
-
-        print(numOfLines)
+        numOfLines = len(houghLines)
 
         if loopsCounter > numberOfLoopsAllowed:
             break
-
         loopsCounter = loopsCounter + 1
 
-        for line in lines:
-            for x1, y1, x2, y2 in line:
-                cv.line(imgBlackCopy, (x1, y1), (x2, y2), (255, 0, 0), 2)
+    for line in houghLines:
+        for x1, y1, x2, y2 in line:
+            cv.line(imgBlackCopy, (x1, y1), (x2, y2), (255, 0, 0), 2)
 
-        cv.imwrite("lines" + str(loopsCounter + 1) + ".png", imgBlackCopy)
-        cv.imwrite("edges" + str(loopsCounter + 1) + ".png", edges)
-
+    return imgBlackCopy, imgEdges, houghLines
 
 
-    print(imageName)
-    print("Number of lines:", numOfLines)
-    print("Bilateral: ", bilateralBlurStrength)
+img = cv.imread("./../sample_photos/0005.jpg")
+linesImg, edgesImg, houghLinesP = getLines(img, 300, 100)
 
-
-# plot images
-fig, axs = plt.subplots(2, 2)
-axs[0, 0].imshow(imgBlack, "gray")
-axs[0, 0].set_title('Original B&W')
-axs[0, 1].imshow(blurredImg, 'gray')
-axs[0, 1].set_title('Bilateral blur')
-axs[1, 0].imshow(edges, 'gray')
-axs[1, 0].set_title('Canny Edge')
-axs[1, 1].imshow(cv.cvtColor(imgBlackCopy, cv.COLOR_BGR2RGB))
-axs[1, 1].set_title('Hough lines')
-
+fig, axs = plt.subplots(1, 2)
+axs[0].imshow(linesImg, "gray")
+axs[0].set_title('Lines')
+axs[1].imshow(edgesImg, 'gray')
+axs[1].set_title('Edges')
 plt.show()
