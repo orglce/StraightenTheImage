@@ -37,7 +37,7 @@ def getLines(img, expectedNumOfLines, numOfLinesVariance):
         imgBlack = cv.resize(imgBlack, (newWidth, 1000), cv.INTER_AREA)
 
     while numOfLines < lowerNumOfLines or numOfLines > upperNumOfLines:
-        imgBlackCopy = imgBlack.copy()
+        imgBlackCopyHoughLinesP = imgBlack.copy()
 
         if numOfLines < lowerNumOfLines:
             bilateralBlurStrength = bilateralBlurStrength - 1
@@ -52,41 +52,64 @@ def getLines(img, expectedNumOfLines, numOfLinesVariance):
             useBilateralBlur = False
 
         if improveContrast:
-            imgBlackCopy = cv.equalizeHist(imgBlackCopy)
-            imgBlackCopy = cv.createCLAHE(1, (5, 5)).apply(imgBlackCopy)
+            imgBlackCopyHoughLinesP = cv.equalizeHist(imgBlackCopyHoughLinesP)
+            imgBlackCopyHoughLinesP = cv.createCLAHE(1, (5, 5)).apply(imgBlackCopyHoughLinesP)
 
         if useBilateralBlur:
-            blurredImg = cv.bilateralFilter(imgBlackCopy, bilateralBlurStrength, 100, 100)
+            blurredImg = cv.bilateralFilter(imgBlackCopyHoughLinesP, bilateralBlurStrength, 100, 100)
         else:
-            blurredImg = imgBlackCopy
+            blurredImg = imgBlackCopyHoughLinesP
 
         # Canny edge detection
         cannyLowThreshold = np.median(blurredImg) - blurredImg.std()
         cannyHighThreshold = np.median(blurredImg) + blurredImg.std()
         imgEdges = cv.Canny(blurredImg, cannyLowThreshold, cannyHighThreshold, 3)
 
-        # Hough line transform
-        houghLines = cv.HoughLinesP(imgEdges, 1, np.pi / 180, houghLineTransformThreshold,
+        # Hough line p transform
+        houghLinesP = cv.HoughLinesP(imgEdges, 1, np.pi / 180, houghLineTransformThreshold,
                                minLineLength=houghLineTransformMinLength, maxLineGap=50)
-        numOfLines = len(houghLines)
+        numOfLines = len(houghLinesP)
 
         if loopsCounter > numberOfLoopsAllowed:
             break
         loopsCounter = loopsCounter + 1
 
-    for line in houghLines:
+    # Normal hough line transform
+    imgBlackCopyHoughLines = imgBlack.copy()
+    houghLines = cv.HoughLines(imgEdges, 1, np.pi / 180, 200)
+
+    # drawing lines
+    for x in range(0, len(houghLines)):
+        for rho, theta in houghLines[x]:
+            a = np.cos(theta)
+            b = np.sin(theta)
+            x0 = a * rho
+            y0 = b * rho
+            x1 = int(x0 + 1000 * (-b))
+            y1 = int(y0 + 1000 * (a))
+            x2 = int(x0 - 1000 * (-b))
+            y2 = int(y0 - 1000 * (a))
+
+            cv.line(imgBlackCopyHoughLines, (x1, y1), (x2, y2), (255, 0, 0), 2)
+
+    for line in houghLinesP:
         for x1, y1, x2, y2 in line:
-            cv.line(imgBlackCopy, (x1, y1), (x2, y2), (255, 0, 0), 2)
+            cv.line(imgBlackCopyHoughLinesP, (x1, y1), (x2, y2), (255, 0, 0), 2)
 
-    return imgBlackCopy, imgEdges, houghLines
+    return imgBlackCopyHoughLinesP, imgBlackCopyHoughLines, imgEdges, houghLinesP, houghLines
 
 
-img = cv.imread("./../sample_photos/0005.jpg")
-linesImg, edgesImg, houghLinesP = getLines(img, 300, 100)
+img = cv.imread("./../sample_photos/0006.jpg")
+imgHoughP, imgHough, edgesImg, houghLinesP, houghLines = getLines(img, 400, 100)
 
-fig, axs = plt.subplots(1, 2)
-axs[0].imshow(linesImg, "gray")
-axs[0].set_title('Lines')
-axs[1].imshow(edgesImg, 'gray')
-axs[1].set_title('Edges')
+# lines for further processing are saved in
+# houghLinesP and houghLines
+
+fig, axs = plt.subplots(1, 3)
+axs[0].imshow(imgHoughP, "gray")
+axs[0].set_title('HoughLinesP')
+axs[1].imshow(imgHough, 'gray')
+axs[1].set_title('HoughLines normal')
+axs[2].imshow(edgesImg, 'gray')
+axs[2].set_title('Edges')
 plt.show()
