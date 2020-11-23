@@ -96,20 +96,22 @@ def getLines(img, expectedNumOfLines, numOfLinesVariance):
         for x1, y1, x2, y2 in line:
             cv.line(imgBlackCopyHoughLinesP, (x1, y1), (x2, y2), (255, 0, 0), 2)
 
-    return imgBlackCopyHoughLinesP, imgBlackCopyHoughLines, imgEdges, houghLinesP, houghLines
+    fig, axs = plt.subplots(1, 3)
+    axs[0].imshow(imgBlackCopyHoughLinesP, "gray")
+    axs[0].set_title('HoughLinesP')
+    axs[1].imshow(imgBlackCopyHoughLines, 'gray')
+    axs[1].set_title('HoughLines normal')
+    axs[2].imshow(imgEdges, 'gray')
+    axs[2].set_title('Edges')
+    plt.show()
+
+    return houghLinesP, houghLines
 
 
 img = cv.imread("./../sample_photos/0006.jpg")
-imgHoughP, imgHough, edgesImg, houghLinesP, houghLines = getLines(img, 400, 100)
+houghLinesP, houghLines = getLines(img, 400, 100)
 
 # lines for further processing are saved in
 # houghLinesP and houghLines
 
-fig, axs = plt.subplots(1, 3)
-axs[0].imshow(imgHoughP, "gray")
-axs[0].set_title('HoughLinesP')
-axs[1].imshow(imgHough, 'gray')
-axs[1].set_title('HoughLines normal')
-axs[2].imshow(edgesImg, 'gray')
-axs[2].set_title('Edges')
-plt.show()
+
