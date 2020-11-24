@@ -109,4 +109,4 @@ def getLines(img, expectedNumOfLines, numOfLinesVariance):
 
 
 img = cv.imread("./../sample_photos/0006.jpg")
-houghLinesP, houghLines = getLines(img, 400, 100)
+houghLinesP, houghLines = getLines(img, 200, 100)
