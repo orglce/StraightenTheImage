@@ -134,8 +134,8 @@ def calculate_angle(image : np.ndarray, hough_lines : np.ndarray = None, hough_l
     weighted_angles[np.median(just_angles)] = weighted_angles.get(np.median(just_angles), 0) + weight_median
  
  
-    # Add longest line with 'w2' weight
-    longest = angles[0]['length']
+    # Add longest line with 'w2' weight (but only if it is longer than 0)
+    longest = angles[0]['length'] if angles[0]['length'] > 0 else 0
     for line in angles:
         # get longest line (may be multiple lines with different angles)
         if line['length'] >= longest:
