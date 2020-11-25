@@ -6,9 +6,9 @@ ROTATE_AND_CROP = 2
 ROTATE_AND_KEEP = 0
 
 
-def rotate_image(image : np.ndarray, degrees : float = 0, rotation_type : int = ROTATE_AND_CROP):
+def rotate_image(image : np.ndarray, degrees : float = 0, rotation_type : int = ROTATE_AND_CROP) -> np.ndarray:
     '''
-    Rotates image by given angle clockwise with given type of post-processing 
+    Rotates image by given angle anti-clockwise with given type of post-processing 
 
     Parameters
     ----------
@@ -16,7 +16,7 @@ def rotate_image(image : np.ndarray, degrees : float = 0, rotation_type : int = 
         Image imported by OpenCV to rotate
     
     degrees (float): 
-        Degrees to rotate image clockwise. For anti-clockwise rotation, provide negative value. The default is 0.
+        Degrees to rotate image anti-clockwise. For clockwise rotation, provide negative value. The default is 0.
     
     rotation_type (int) :
         Post-processing of rotation. 
@@ -32,16 +32,19 @@ def rotate_image(image : np.ndarray, degrees : float = 0, rotation_type : int = 
 
     '''
     
-    # get pictiure dimentions
-    if len(image.shape) == 3:
-        # for colour and other 3-dimentional spaces
+    # check if image has 'shape'
+    if 'shape' not in dir(image):
+        raise TypeError("No image provided, or it is of incorrect type")
+    # get pictiure dimensions
+    elif len(image.shape) == 3:
+        # for colour and other 3-dimensional spaces
         height, width, depth = image.shape
     elif len(image.shape) == 2:
         # for greyscale space
         height, width = image.shape
+    # raise exception as can't proceed
     else:
-        # raise exception as can't proceed
-        raise TypeError("Provided image is in incorrect format")
+        raise ValueError("Provided image is in incorrect format")
         
     # get center of rotation/image
     cx = width // 2
@@ -55,7 +58,7 @@ def rotate_image(image : np.ndarray, degrees : float = 0, rotation_type : int = 
     new_height = height * scale    
     
     if rotation_type == ROTATE_AND_EXPAND or rotation_type == ROTATE_AND_CROP:
-        # in case of expanding and cropping - calculate expanded matrix and new dimentions
+        # in case of expanding and cropping - calculate expanded matrix and new dimensions
         '''
             Details taken from https://www.pyimagesearch.com/2017/01/02/rotate-images-correctly-with-opencv-and-python/
         '''
@@ -84,7 +87,7 @@ def rotate_image(image : np.ndarray, degrees : float = 0, rotation_type : int = 
         # get long and short side
         side_long, side_short = (width, height) if width >= height else (height, width)
         
-        # calculate new dimentions of fitted image (for cropping)
+        # calculate new dimensions of fitted image (for cropping)
         if side_short <= 2.0 * sin_t * cos_t * side_long or abs(sin_t - cos_t) < 1e-10:
             # half constrained case: two crop corners touch the longer side,
             # the other two corners are on the mid-line parallel to the longer line
@@ -95,7 +98,7 @@ def rotate_image(image : np.ndarray, degrees : float = 0, rotation_type : int = 
             cos_2t = cos_t * cos_t - sin_t * sin_t
             crop_width, crop_height = (width * cos_t - height * sin_t) / cos_2t, (height * cos_t - width * sin_t) / cos_2t
 
-        # get coordinates of the new dimention
+        # get coordinates of the new dimension
         dx = int(np.round((new_width - crop_width) / 2))
         dy = int(np.round((new_height - crop_height) / 2))
         
