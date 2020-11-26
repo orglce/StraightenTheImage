@@ -10,10 +10,14 @@ from collections import Counter
 # w4 - parallel lines
 # w5 - perpendicular lines
 # w6 - flat lines (vertical or horizontal)
-DEFAULT_WEIGHTS = [1,2,0.1,1.25,1.5,1]
+DEFAULT_WEIGHTS = [1, 2, 0.1, 1.25, 1.5, 1]
 
 
-def calculate_angle(image : np.ndarray, hough_lines : np.ndarray = None, hough_lines_p : np.ndarray = None, weights : list = DEFAULT_WEIGHTS, significance : float = 10 ) -> float:
+def calculate_angle(image : np.ndarray, 
+                    hough_lines : np.ndarray = None, 
+                    hough_lines_p : np.ndarray = None, 
+                    weights : list = DEFAULT_WEIGHTS, 
+                    significance : float = 10 ) -> float:
     '''
     Calculates the most important angle, or angle to which need to rotate image to get it straight
 
@@ -130,6 +134,8 @@ def calculate_angle(image : np.ndarray, hough_lines : np.ndarray = None, hough_l
     weighted_angles = {}
     
 
+    
+
     # Add median angle with 'w1' weight
     weighted_angles[np.median(just_angles)] = weighted_angles.get(np.median(just_angles), 0) + weight_median
  
@@ -175,6 +181,7 @@ def calculate_angle(image : np.ndarray, hough_lines : np.ndarray = None, hough_l
     for angle in just_angles:
         if angle == 90.0 or angle == 0.0 or angle == 180.0:
             weighted_angles[angle] = weighted_angles.get(angle, 0) + weight_flat
+    
     
     
     # calculate the most important angle - the one with most entries in weighted list

@@ -6,7 +6,9 @@ ROTATE_AND_CROP = 2
 ROTATE_AND_KEEP = 0
 
 
-def rotate_image(image : np.ndarray, degrees : float = 0, rotation_type : int = ROTATE_AND_CROP) -> np.ndarray:
+def rotate_image(image : np.ndarray, 
+                 degrees : float = 0, 
+                 rotation_type : int = ROTATE_AND_CROP) -> np.ndarray:
     '''
     Rotates image by given angle anti-clockwise with given type of post-processing 
 
